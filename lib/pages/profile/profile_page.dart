@@ -169,7 +169,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 16),
             if (_isSearching) const Center(child: CircularProgressIndicator()),
             if (_searchResults.isNotEmpty)
-              Container(
+              SizedBox(
                 height: 200,
                 child: ListView.builder(
                   itemCount: _searchResults.length,

@@ -34,7 +34,7 @@ class _AppState extends State<App> {
         _initialized = true;
       });
     } catch (e) {
-      print('Firebase initialization error: $e');
+      debugPrint('Firebase initialization error: $e');
       setState(() {
         _error = true;
       });

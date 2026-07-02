@@ -22,7 +22,7 @@ class Avatar extends StatelessWidget {
         color: Colors.grey[300],
         child: displayUrl != null
             ? Image.network(
-                displayUrl!,
+                displayUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(Icons.person, size: size * 0.6, color: Colors.grey[600]);
