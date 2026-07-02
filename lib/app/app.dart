@@ -22,12 +22,12 @@ class _AppState extends State<App> {
   void initializeFlutterFire() async {
     try {
       await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: 'AIzaSyCVtHE2Eeed5luH9ZK_bINkU2GoVeLGW70',
-          authDomain: 'hollysheet-map.firebaseapp.com',
-          projectId: 'hollysheet-map',
-          messagingSenderId: '636548357021',
-          appId: '1:636548357021:web:223287659c9b2b2784ad74',
+        options: FirebaseOptions(
+          apiKey: const String.fromEnvironment('FIREBASE_API_KEY'),
+          authDomain: const String.fromEnvironment('FIREBASE_AUTH_DOMAIN'),
+          projectId: const String.fromEnvironment('FIREBASE_PROJECT_ID'),
+          messagingSenderId: const String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
+          appId: const String.fromEnvironment('FIREBASE_APP_ID'),
         ),
       );
       setState(() {
@@ -79,7 +79,8 @@ class _AppState extends State<App> {
                         Text('2. Enable Email/Password authentication in Firebase Console'),
                         Text('3. Enable Firestore Database'),
                         Text('4. Add a web app to your Firebase project'),
-                        Text('5. Copy the Firebase config and replace the values in lib/app/app.dart'),
+                        Text('5. Pass Firebase config via --dart-define at build time'),
+                        Text('   e.g. flutter build web --dart-define=FIREBASE_API_KEY=...'),
                       ],
                     ),
                   ),

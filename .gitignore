@@ -34,6 +34,10 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Environment variables
+.env
+.env.local
+
 # Symbolication related
 app.*.symbols
 
