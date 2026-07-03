@@ -15,14 +15,27 @@ class ProfileImageCropper {
 
       if (imageFile == null) return null;
 
+      final List<Widget> uiSettings = [
+        AndroidUiSettings(
+          toolbarTitle: 'Cropper',
+          toolbarColor: Colors.blue,
+          toolbarWidgetColor: Colors.white,
+          backgroundColor: Colors.black,
+        ),
+        IOSUiSettings(
+          title: 'Cropper',
+        ),
+        WebUiSettings(),
+      ];
+
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
         aspectRatio: isCircle
-            ? const CropAspectRatio(ratioX: 1, ratioY: 1)
+            ? CropAspectRatio(ratioX: 1, ratioY: 1)
             : null,
         cropStyle: isCircle ? CropStyle.circle : CropStyle.rectangle,
         compressQuality: 90,
-        uiSettings: _getUiSettings(isCircle),
+        uiSettings: uiSettings,
       );
 
       return croppedFile;
@@ -30,25 +43,5 @@ class ProfileImageCropper {
       debugPrint('Error cropping image: $e');
       rethrow;
     }
-  }
-
-  UiSettings _getUiSettings(bool isCircle) {
-    return const PlatformUiSettings(
-      androidInitSettings: AndroidInitSettings(
-        toolbarTitle: 'Cropper',
-        toolbarColor: Colors.blue,
-        toolbarWidgetColor: Colors.white,
-        backgroundColor: Colors.black,
-      ),
-      iosInitSettings: IOSInitSettings(
-        title: 'Cropper',
-        aspectRatioPickerFormats: IOSAspectRatioPickerFormats.squareAndRectangle,
-        squareAspectRatioName: 'Square',
-        rectangleAspectRatioName: 'Rectangle',
-      ),
-      webInitSettings: WebUiSettings(
-        context: null,
-      ),
-    );
   }
 }

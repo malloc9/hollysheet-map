@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:firebase_storage/firebase_storage.dart';
 import '../../models/user.dart';
 import '../../providers/user_provider.dart';
 import '../../services/geocoding_service.dart';
@@ -19,7 +18,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _geocodingService = GeocodingService();
-  final _imageUploadService = ImageUploadService();
   final _profileImageCropper = ProfileImageCropper();
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _nationalityController = TextEditingController();
@@ -31,6 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _selectedLocation;
   String? _userEmail;
   UserProvider? _userProvider;
+  final ImageUploadService _imageUploadService = ImageUploadService();
 
   @override
   void initState() {
