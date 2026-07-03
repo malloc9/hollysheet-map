@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final _geocodingService = GeocodingService();
   final _profileImageCropper = ProfileImageCropper();
+  final _imageUploadService = ImageUploadService();
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _nationalityController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
@@ -29,7 +31,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? _selectedLocation;
   String? _userEmail;
   UserProvider? _userProvider;
-  final ImageUploadService _imageUploadService = ImageUploadService();
 
   @override
   void initState() {
@@ -110,8 +111,6 @@ class _ProfilePageState extends State<ProfilePage> {
       final user = firebase_auth.FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      final userId = user.uid;
-
       final croppedFile = await _profileImageCropper.cropImage(isCircle: true);
 
       if (croppedFile == null) {
@@ -120,6 +119,9 @@ class _ProfilePageState extends State<ProfilePage> {
         });
         return;
       }
+
+      bool isMounted = mounted;
+      if (!isMounted) return;
 
       showDialog(
         context: context,
@@ -138,9 +140,12 @@ class _ProfilePageState extends State<ProfilePage> {
 
       final downloadUrl = await _imageUploadService.uploadImage(
         File(croppedFile.path),
-        userId,
       );
 
+      if (!mounted) {
+        await Navigator.of(context).pop();
+        return;
+      }
       await Navigator.of(context).pop();
 
       final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -157,6 +162,10 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     } catch (e) {
+      if (!mounted) {
+        await Navigator.of(context).pop();
+        return;
+      }
       await Navigator.of(context).pop();
 
       if (mounted) {

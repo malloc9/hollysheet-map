@@ -15,7 +15,7 @@ class ProfileImageCropper {
 
       if (imageFile == null) return null;
 
-      final List<Widget> uiSettings = [
+      final List<PlatformUiSettings> uiSettings = [
         AndroidUiSettings(
           toolbarTitle: 'Cropper',
           toolbarColor: Colors.blue,
@@ -25,7 +25,7 @@ class ProfileImageCropper {
         IOSUiSettings(
           title: 'Cropper',
         ),
-        WebUiSettings(),
+        WebUiSettings(context: null),
       ];
 
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
