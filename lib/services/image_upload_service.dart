@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import '../services/firestore_service.dart';
@@ -15,11 +16,10 @@ class ImageUploadService {
       if (user == null) throw Exception('No authenticated user found');
 
       final userId = user.uid;
+      final storage = FirebaseStorage.instance;
+      final firestoreService = FirestoreService();
 
-      final FirebaseStorage _storage = FirebaseStorage.instance;
-      final FirestoreService _firestoreService = FirestoreService();
-
-      final ref = _storage
+      final ref = storage
           .ref()
           .child('profile_images')
           .child('$userId.jpg');
@@ -29,7 +29,7 @@ class ImageUploadService {
 
       final downloadUrl = await ref.getDownloadURL();
 
-      await _firestoreService.updateUserImage(userId, downloadUrl);
+      await firestoreService.updateUserImage(userId, downloadUrl);
 
       return downloadUrl;
     } catch (e) {
@@ -45,14 +45,16 @@ class ImageUploadService {
 
     if (currentImageUrl != null && currentImageUrl.isNotEmpty) {
       try {
-        final FirebaseStorage _storage = FirebaseStorage.instance;
+        final storage = FirebaseStorage.instance;
 
-        final ref = _storage
+        final ref = storage
             .refFromURL(currentImageUrl)
             .child('profile_images')
             .child('$userId.jpg');
         await ref.delete();
-      } catch (e) {}
+      } catch (e) {
+        // Ignore deletion errors
+      }
     }
 
     await FirestoreService().updateUserImage(userId, null);

@@ -15,27 +15,25 @@ class ProfileImageCropper {
 
       if (imageFile == null) return null;
 
-      final List<PlatformUiSettings> uiSettings = [
-        AndroidUiSettings(
-          toolbarTitle: 'Cropper',
-          toolbarColor: Colors.blue,
-          toolbarWidgetColor: Colors.white,
-          backgroundColor: Colors.black,
-        ),
-        IOSUiSettings(
-          title: 'Cropper',
-        ),
-        WebUiSettings(context: null),
-      ];
-
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
         aspectRatio: isCircle
             ? CropAspectRatio(ratioX: 1, ratioY: 1)
             : null,
-        cropStyle: isCircle ? CropStyle.circle : CropStyle.rectangle,
         compressQuality: 90,
-        uiSettings: uiSettings,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Cropper',
+            toolbarColor: Colors.blue,
+            toolbarWidgetColor: Colors.white,
+            backgroundColor: Colors.black,
+            cropStyle: isCircle ? CropStyle.circle : CropStyle.rectangle,
+          ),
+          IOSUiSettings(
+            title: 'Cropper',
+            cropStyle: isCircle ? CropStyle.circle : CropStyle.rectangle,
+          ),
+        ],
       );
 
       return croppedFile;

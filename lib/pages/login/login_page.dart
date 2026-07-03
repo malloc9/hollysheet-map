@@ -60,13 +60,12 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
 
-      if (context.mounted) {
-        context.go('/waiting');
-      }
+      if (!mounted) return;
+      context.go('/waiting');
     } catch (e, stackTrace) {
       debugPrint('Error: $e');
       debugPrint('Stack trace: $stackTrace');
-      if (context.mounted) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_isLogin ? 'Login failed: $e' : 'Sign up failed: $e')),
         );

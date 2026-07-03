@@ -102,51 +102,41 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-    Future<void> _uploadAvatar() async {
+  Future<void> _uploadAvatar() async {
     setState(() {
       _isUploadingImage = true;
     });
 
-    try {
-      final user = firebase_auth.FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+    final user = firebase_auth.FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-      final croppedFile = await _profileImageCropper.cropImage(isCircle: true);
+    final croppedFile = await _profileImageCropper.cropImage(isCircle: true);
+    if (croppedFile == null) return;
 
-      if (croppedFile == null) {
-        setState(() {
-          _isUploadingImage = false;
-        });
-        return;
-      }
+    if (!mounted) return;
 
-      bool isMounted = mounted;
-      if (!isMounted) return;
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Uploading profile picture...'),
-            ],
-          ),
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Uploading profile picture...'),
+          ],
         ),
-      );
+      ),
+    );
 
+    try {
       final downloadUrl = await _imageUploadService.uploadImage(
         File(croppedFile.path),
       );
 
-      if (!mounted) {
-        await Navigator.of(context).pop();
-        return;
-      }
-      await Navigator.of(context).pop();
+      if (!mounted) return;
+      Navigator.of(context).pop();
 
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       User updatedUser = userProvider.currentUser!.copyWith(
@@ -162,13 +152,8 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     } catch (e) {
-      if (!mounted) {
-        await Navigator.of(context).pop();
-        return;
-      }
-      await Navigator.of(context).pop();
-
       if (mounted) {
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update profile picture: $e')),
         );
@@ -208,46 +193,45 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-    @override
-    Widget build(BuildContext context) {
-      final userProvider = Provider.of<UserProvider>(context);
-      final currentUser = userProvider.currentUser;
+  @override
+  Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final currentUser = userProvider.currentUser;
 
-      if (currentUser == null) {
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        );
-      }
+    if (currentUser == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Edit Profile'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.go('/map'),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/map'),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView(
-            children: [
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  Avatar(avatarUrl: currentUser.avatarUrl, email: _userEmail, size: 96),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: IconButton(
-                      onPressed: _isUploadingImage ? null : _uploadAvatar,
-                      icon: const Icon(Icons.camera_alt, color: Colors.white),
-                    ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ListView(
+          children: [
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                Avatar(avatarUrl: currentUser.avatarUrl, email: _userEmail, size: 96),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                  child: IconButton(
+                    onPressed: _isUploadingImage ? null : _uploadAvatar,
+                    icon: const Icon(Icons.camera_alt, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             if (_userEmail != null)
               Text(

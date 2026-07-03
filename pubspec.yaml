@@ -57,6 +57,7 @@ dependencies:
   # Image upload and cropping
   image_picker: ^1.1.2
   image_cropper: ^9.0.3
+  firebase_storage: ^12.4.10
   # Image compression
   image_compression: ^1.0.2
 
