@@ -64,6 +64,13 @@ class FirestoreService {
     await _firestore.collection('users').doc(user.uid).update(user.toFirestore());
   }
 
+  Future<void> updateUserImage(String uid, String? avatarUrl) async {
+    await _firestore.collection('users').doc(uid).update({
+      'avatarUrl': avatarUrl,
+      'updatedAt': Timestamp.fromDate(DateTime.now()),
+    });
+  }
+
   Future<void> approveUser(String uid) async {
     await _firestore.collection('users').doc(uid).update({
       'approved': true,

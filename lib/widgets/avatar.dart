@@ -6,7 +6,12 @@ class Avatar extends StatelessWidget {
   final String? email;
   final double size;
 
-  const Avatar({super.key, this.avatarUrl, this.email, this.size = 48.0});
+  const Avatar({
+    super.key,
+    this.avatarUrl,
+    this.email,
+    this.size = 48.0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +29,17 @@ class Avatar extends StatelessWidget {
             ? Image.network(
                 displayUrl,
                 fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
                 errorBuilder: (context, error, stackTrace) {
                   return Icon(Icons.person, size: size * 0.6, color: Colors.grey[600]);
                 },

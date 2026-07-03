@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
+import '../services/image_upload_service.dart';
 import '../providers/auth_provider.dart';
 import '../providers/user_provider.dart';
 import '../providers/map_provider.dart';

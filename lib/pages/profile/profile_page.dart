@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../models/user.dart';
 import '../../providers/user_provider.dart';
 import '../../services/geocoding_service.dart';
+import '../../services/image_upload_service.dart';
 import '../../widgets/avatar.dart';
+import '../../widgets/profile_image_cropper.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,12 +19,15 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final _geocodingService = GeocodingService();
+  final _imageUploadService = ImageUploadService();
+  final _profileImageCropper = ProfileImageCropper();
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _nationalityController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _avatarUrlController = TextEditingController();
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
+  bool _isUploadingImage = false;
   Map<String, dynamic>? _selectedLocation;
   String? _userEmail;
   UserProvider? _userProvider;
@@ -96,6 +102,78 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+    Future<void> _uploadAvatar() async {
+    setState(() {
+      _isUploadingImage = true;
+    });
+
+    try {
+      final user = firebase_auth.FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final userId = user.uid;
+
+      final croppedFile = await _profileImageCropper.cropImage(isCircle: true);
+
+      if (croppedFile == null) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+        return;
+      }
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Uploading profile picture...'),
+            ],
+          ),
+        ),
+      );
+
+      final downloadUrl = await _imageUploadService.uploadImage(
+        File(croppedFile.path),
+        userId,
+      );
+
+      await Navigator.of(context).pop();
+
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      User updatedUser = userProvider.currentUser!.copyWith(
+        avatarUrl: downloadUrl,
+        updatedAt: DateTime.now(),
+      );
+
+      await userProvider.updateUser(updatedUser);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile picture updated successfully')),
+        );
+      }
+    } catch (e) {
+      await Navigator.of(context).pop();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile picture: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingImage = false;
+        });
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final currentUser = userProvider.currentUser;
@@ -122,30 +200,46 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-    final currentUser = userProvider.currentUser;
+    @override
+    Widget build(BuildContext context) {
+      final userProvider = Provider.of<UserProvider>(context);
+      final currentUser = userProvider.currentUser;
 
-    if (currentUser == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+      if (currentUser == null) {
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/map'),
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Edit Profile'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.go('/map'),
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            Avatar(avatarUrl: currentUser.avatarUrl, email: _userEmail, size: 96),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: ListView(
+            children: [
+              Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  Avatar(avatarUrl: currentUser.avatarUrl, email: _userEmail, size: 96),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: IconButton(
+                      onPressed: _isUploadingImage ? null : _uploadAvatar,
+                      icon: const Icon(Icons.camera_alt, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
             const SizedBox(height: 8),
             if (_userEmail != null)
               Text(
