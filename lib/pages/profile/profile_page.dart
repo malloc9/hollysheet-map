@@ -110,7 +110,10 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = firebase_auth.FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final croppedFile = await _profileImageCropper.cropImage(isCircle: true);
+    final croppedFile = await _profileImageCropper.cropImage(
+        isCircle: true,
+        context: context,
+      );
     if (croppedFile == null) return;
 
     if (!mounted) return;

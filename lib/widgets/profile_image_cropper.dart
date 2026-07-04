@@ -5,7 +5,10 @@ import 'package:image_picker/image_picker.dart';
 class ProfileImageCropper {
   final ImagePicker _picker = ImagePicker();
 
-  Future<CroppedFile?> cropImage({required bool isCircle}) async {
+  Future<CroppedFile?> cropImage({
+    required bool isCircle,
+    required BuildContext context,
+  }) async {
     try {
       final XFile? imageFile = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -15,6 +18,7 @@ class ProfileImageCropper {
 
       if (imageFile == null) return null;
 
+      // ignore: use_build_context_synchronously
       final CroppedFile? croppedFile = await ImageCropper().cropImage(
         sourcePath: imageFile.path,
         aspectRatio: isCircle
@@ -22,6 +26,25 @@ class ProfileImageCropper {
             : null,
         compressQuality: 90,
         uiSettings: [
+          WebUiSettings(
+            // ignore: use_build_context_synchronously
+            context: context,
+            presentStyle: WebPresentStyle.dialog,
+            size: const CropperSize(width: 500, height: 500),
+            dragMode: WebDragMode.crop,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            rotatable: true,
+            scalable: true,
+            zoomable: true,
+            translations: WebTranslations(
+              title: 'Cropper',
+              rotateLeftTooltip: 'Rotate Left',
+              rotateRightTooltip: 'Rotate Right',
+              cancelButton: 'Cancel',
+              cropButton: 'Done',
+            ),
+          ),
           AndroidUiSettings(
             toolbarTitle: 'Cropper',
             toolbarColor: Colors.blue,
