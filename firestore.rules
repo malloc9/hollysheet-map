@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users can read and write their own profile document.
+    // The app MUST be able to read the user's own document to check
+    // the `approved` field, otherwise it's stuck showing "awaiting
+    // approval" even after an admin sets approved=true in the console.
+    match /users/{userId} {
+      // READ: A user can always read their own profile.
+      // Approved users can also read any approved user's profile
+      // (needed for the map to show other members).
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        // For reading other profiles: the requesting user must be approved
+        // and the target profile must be approved.
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.approved == true &&
+        resource.data.approved == true
+      );
+
+      // CREATE: A user can create their own profile on first login.
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // UPDATE: A user can update their own profile.
+      allow update: if request.auth != null && request.auth.uid == userId;
+
+      // DELETE: No client-side deletes allowed.
+      allow delete: if false;
+    }
+  }
+}
