@@ -8,6 +8,7 @@ import '../../models/user.dart';
 import '../../models/role.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../utils/distance_calculator.dart';
 import '../../widgets/avatar.dart';
 import '../../widgets/map_marker.dart';
 
@@ -55,6 +56,10 @@ class _MapPageState extends State<MapPage> {
       );
     }
 
+    final nearestAndFurthest = findNearestAndFurthest(currentUser, approvedUsers);
+    final nearestUid = nearestAndFurthest.nearest?.uid;
+    final furthestUid = nearestAndFurthest.furthest?.uid;
+
     final markers = approvedUsers
         .where((user) => user.latitude != null && user.longitude != null)
         .map((user) => Marker(
@@ -69,6 +74,11 @@ class _MapPageState extends State<MapPage> {
               avatarUrl: user.avatarUrl,
               email: user.email,
               name: user.displayName,
+              highlightColor: user.uid == nearestUid
+                  ? Colors.green
+                  : user.uid == furthestUid
+                      ? Colors.red
+                      : null,
             ),
           ),
         ))
@@ -86,6 +96,10 @@ class _MapPageState extends State<MapPage> {
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () => context.go('/profile'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.leaderboard),
+            onPressed: () => context.go('/rankings'),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -116,6 +130,47 @@ class _MapPageState extends State<MapPage> {
               MarkerLayer(markers: markers),
             ],
           ),
+          // Top-left overlay: nearest and furthest neighbors
+          if (nearestAndFurthest.nearest != null ||
+              nearestAndFurthest.furthest != null)
+            Positioned(
+              top: 16,
+              left: 16,
+              child: Card(
+                elevation: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Neighbors',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (nearestAndFurthest.nearest != null)
+                        _buildNeighborRow(
+                          context,
+                          nearestAndFurthest.nearest!,
+                          nearestAndFurthest.nearestDistanceKm!,
+                          Colors.green,
+                        ),
+                      if (nearestAndFurthest.furthest != null)
+                        _buildNeighborRow(
+                          context,
+                          nearestAndFurthest.furthest!,
+                          nearestAndFurthest.furthestDistanceKm!,
+                          Colors.red,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (_selectedUser != null)
             Positioned(
               bottom: 16,
@@ -175,6 +230,43 @@ class _MapPageState extends State<MapPage> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNeighborRow(
+    BuildContext context,
+    User user,
+    double distanceKm,
+    Color highlightColor,
+  ) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          radius: 14,
+          backgroundColor: highlightColor.withValues(alpha: 0.2),
+          child: Avatar(
+            avatarUrl: user.avatarUrl,
+            email: user.email,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          user.displayName,
+          style: const TextStyle(fontSize: 13),
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          '${distanceKm.toStringAsFixed(1)} km',
+          style: TextStyle(
+            fontSize: 12,
+            color: highlightColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }

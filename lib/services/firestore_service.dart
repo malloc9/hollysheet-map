@@ -3,7 +3,13 @@ import '../models/user.dart';
 import '../models/role.dart';
 
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  FirebaseFirestore? _injectedFirestore;
+
+  FirestoreService([FirebaseFirestore? firestore])
+      : _injectedFirestore = firestore;
+
+  FirebaseFirestore get _firestore =>
+      _injectedFirestore ?? FirebaseFirestore.instance;
 
   Future<void> createUser(User user) async {
     await _firestore.collection('users').doc(user.uid).set(user.toFirestore());

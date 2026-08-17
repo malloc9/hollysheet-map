@@ -4,6 +4,7 @@ import '../pages/waiting/waiting_page.dart';
 import '../pages/map/map_page.dart';
 import '../pages/profile/profile_page.dart';
 import '../pages/admin/admin_page.dart';
+import '../pages/rankings/rankings_page.dart';
 
 final router = GoRouter(
   initialLocation: '/',
@@ -32,6 +33,11 @@ final router = GoRouter(
       path: '/admin',
       name: 'admin',
       builder: (context, state) => const AdminPage(),
+    ),
+    GoRoute(
+      path: '/rankings',
+      name: 'rankings',
+      builder: (context, state) => const RankingsPage(),
     ),
   ],
 );

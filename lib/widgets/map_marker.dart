@@ -6,10 +6,23 @@ class MapMarker extends StatelessWidget {
   final String? email;
   final String name;
 
-  const MapMarker({super.key, this.avatarUrl, this.email, required this.name});
+  /// Optional ring color around the avatar to highlight this marker.
+  /// Pass [Colors.green] for "nearest" or [Colors.red] for "furthest".
+  /// When null, no ring is drawn.
+  final Color? highlightColor;
+
+  const MapMarker({
+    super.key,
+    this.avatarUrl,
+    this.email,
+    required this.name,
+    this.highlightColor,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final avatar = Avatar(avatarUrl: avatarUrl, email: email, size: 40);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -32,7 +45,17 @@ class MapMarker extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Avatar(avatarUrl: avatarUrl, email: email, size: 40),
+        if (highlightColor != null)
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: highlightColor,
+            ),
+            child: avatar,
+          )
+        else
+          avatar,
       ],
     );
   }
