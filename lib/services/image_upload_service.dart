@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:image_cropper/image_cropper.dart';
 import '../services/firestore_service.dart';
 
 class ImageUploadService {
@@ -10,7 +10,7 @@ class ImageUploadService {
     firebase_auth.FirebaseAuth? auth,
   }) : _auth = auth ?? firebase_auth.FirebaseAuth.instance;
 
-  Future<String> uploadImage(File imageFile) async {
+  Future<String> uploadImage(CroppedFile imageFile) async {
     try {
       final user = _auth.currentUser;
       if (user == null) throw Exception('No authenticated user found');
@@ -22,9 +22,13 @@ class ImageUploadService {
       final ref = storage
           .ref()
           .child('profile_images')
-          .child('$userId.jpg');
+          .child(userId);
 
-      final uploadTask = ref.putFile(imageFile);
+      final bytes = await imageFile.readAsBytes();
+      final uploadTask = ref.putData(
+        bytes,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
       await uploadTask;
 
       final downloadUrl = await ref.getDownloadURL();
@@ -46,11 +50,7 @@ class ImageUploadService {
     if (currentImageUrl != null && currentImageUrl.isNotEmpty) {
       try {
         final storage = FirebaseStorage.instance;
-
-        final ref = storage
-            .refFromURL(currentImageUrl)
-            .child('profile_images')
-            .child('$userId.jpg');
+        final ref = storage.refFromURL(currentImageUrl);
         await ref.delete();
       } catch (e) {
         // Ignore deletion errors

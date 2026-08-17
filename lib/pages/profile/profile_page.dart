@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -135,7 +134,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     try {
       final downloadUrl = await _imageUploadService.uploadImage(
-        File(croppedFile.path),
+        croppedFile,
       );
 
       if (!mounted) return;

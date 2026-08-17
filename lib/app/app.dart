@@ -28,6 +28,7 @@ class _AppState extends State<App> {
           projectId: const String.fromEnvironment('FIREBASE_PROJECT_ID'),
           messagingSenderId: const String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
           appId: const String.fromEnvironment('FIREBASE_APP_ID'),
+          storageBucket: const String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
         ),
       );
       setState(() {
@@ -78,8 +79,9 @@ class _AppState extends State<App> {
                         Text('1. Create a Firebase project at https://console.firebase.google.com/'),
                         Text('2. Enable Email/Password authentication in Firebase Console'),
                         Text('3. Enable Firestore Database'),
-                        Text('4. Add a web app to your Firebase project'),
-                        Text('5. Pass Firebase config via --dart-define at build time'),
+                        Text('4. Enable Firebase Storage in the Storage section'),
+                        Text('5. Add a web app to your Firebase project'),
+                        Text('6. Pass Firebase config via --dart-define at build time'),
                         Text('   e.g. flutter build web --dart-define=FIREBASE_API_KEY=...'),
                       ],
                     ),
