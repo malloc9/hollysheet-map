@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../models/user.dart';
 import '../services/firestore_service.dart';
@@ -10,6 +11,7 @@ class UserProvider with ChangeNotifier {
   List<User> _members = [];
   List<User> _admins = [];
   bool _isLoading = false;
+  String? _loadUserError;
 
   UserProvider(this._firestoreService);
 
@@ -19,40 +21,73 @@ class UserProvider with ChangeNotifier {
   List<User> get members => _members;
   List<User> get admins => _admins;
   bool get isLoading => _isLoading;
+  String? get loadUserError => _loadUserError;
+
+  StreamSubscription<User?>? _userSubscription;
 
   void loadUser(String uid) {
-    _firestoreService.getUserStream(uid).listen((user) {
-      _currentUser = user;
-      notifyListeners();
-    });
+    _loadUserError = null;
+    _userSubscription?.cancel();
+    _userSubscription = _firestoreService.getUserStream(uid).listen(
+      (user) {
+        _currentUser = user;
+        notifyListeners();
+      },
+      onError: (e) {
+        if (kDebugMode) {
+          print('Error loading user from Firestore: $e');
+        }
+        _loadUserError = e.toString();
+        notifyListeners();
+      },
+    );
+  }
+
+  void _listenToList(
+    Stream<List<User>> stream,
+    void Function(List<User>) setter,
+  ) {
+    stream.listen(setter);
   }
 
   void loadApprovedUsers() {
-    _firestoreService.getApprovedUsersStream().listen((users) {
-      _approvedUsers = users;
-      notifyListeners();
-    });
+    _listenToList(
+      _firestoreService.getApprovedUsersStream(),
+      (users) {
+        _approvedUsers = users;
+        notifyListeners();
+      },
+    );
   }
 
   void loadPendingUsers() {
-    _firestoreService.getPendingUsersStream().listen((users) {
-      _pendingUsers = users;
-      notifyListeners();
-    });
+    _listenToList(
+      _firestoreService.getPendingUsersStream(),
+      (users) {
+        _pendingUsers = users;
+        notifyListeners();
+      },
+    );
   }
 
   void loadMembers() {
-    _firestoreService.getMembersStream().listen((users) {
-      _members = users;
-      notifyListeners();
-    });
+    _listenToList(
+      _firestoreService.getMembersStream(),
+      (users) {
+        _members = users;
+        notifyListeners();
+      },
+    );
   }
 
   void loadAdmins() {
-    _firestoreService.getAdminsStream().listen((users) {
-      _admins = users;
-      notifyListeners();
-    });
+    _listenToList(
+      _firestoreService.getAdminsStream(),
+      (users) {
+        _admins = users;
+        notifyListeners();
+      },
+    );
   }
 
   Future<void> updateUser(User user) async {
@@ -80,5 +115,11 @@ class UserProvider with ChangeNotifier {
 
   Future<void> removeUser(String uid) async {
     await _firestoreService.removeUser(uid);
+  }
+
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    super.dispose();
   }
 }

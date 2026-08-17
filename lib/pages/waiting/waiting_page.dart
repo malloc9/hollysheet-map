@@ -48,15 +48,53 @@ class _WaitingPageState extends State<WaitingPage> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Your account is awaiting approval.',
-              style: TextStyle(fontSize: 18),
-            ),
+            if (userProvider.loadUserError != null)
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Error loading your profile',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      userProvider.loadUserError!,
+                      style: const TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'This usually means Firestore security rules are blocking the read. '
+                      'Check that your rules allow users to read their own document.',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            else if (userProvider.currentUser == null)
+              const CircularProgressIndicator()
+            else
+              const Text(
+                'Your account is awaiting approval.',
+                style: TextStyle(fontSize: 18),
+              ),
             const SizedBox(height: 12),
-            const Text(
-              'Please contact a clan leader.',
-              style: TextStyle(fontSize: 16),
-            ),
+            if (userProvider.currentUser == null || userProvider.loadUserError != null)
+              const Text(
+                'Please contact a clan leader.',
+                style: TextStyle(fontSize: 16),
+              ),
             const SizedBox(height: 48),
             ElevatedButton(
               onPressed: () async {

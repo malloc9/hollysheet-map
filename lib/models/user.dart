@@ -94,9 +94,14 @@ class User {
 
   factory User.fromFirestore(Map<String, dynamic> data) {
     return User(
-      uid: data['uid'] as String,
-      userId: (data['userId'] as String?) ?? (data['discordId'] as String?) ?? data['uid'] as String,
-      displayName: (data['displayName'] as String?) ?? (data['discordName'] as String?) ?? 'Anonymous',
+      uid: data['uid'] as String? ?? '',
+      userId: (data['userId'] as String?) ??
+          (data['discordId'] as String?) ??
+          data['uid'] as String? ??
+          '',
+      displayName: (data['displayName'] as String?) ??
+          (data['discordName'] as String?) ??
+          'Anonymous',
       email: data['email'] as String?,
       avatarUrl: data['avatarUrl'] as String?,
       country: data['country'] as String?,
@@ -105,10 +110,15 @@ class User {
       longitude: (data['longitude'] as num?)?.toDouble(),
       nationality: data['nationality'] as String?,
       bio: data['bio'] as String?,
-      approved: data['approved'] as bool,
-      role: Role.values.firstWhere((r) => r.name == data['role'] as String, orElse: () => Role.pending),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      approved: data['approved'] as bool? ?? false,
+      role: Role.values.firstWhere(
+        (r) => r.name == (data['role'] as String? ?? ''),
+        orElse: () => Role.pending,
+      ),
+      createdAt:
+          (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt:
+          (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 }
