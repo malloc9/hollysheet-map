@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -21,15 +22,64 @@ class _ProfilePageState extends State<ProfilePage> {
   final _profileImageCropper = ProfileImageCropper();
   final _imageUploadService = ImageUploadService();
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _nationalityController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _avatarUrlController = TextEditingController();
   List<Map<String, dynamic>> _searchResults = [];
   bool _isSearching = false;
   bool _isUploadingImage = false;
   Map<String, dynamic>? _selectedLocation;
+  String? _selectedNationality;
   String? _userEmail;
   UserProvider? _userProvider;
+
+  static const List<String> _nationalities = [
+    'American',
+    'British',
+    'Canadian',
+    'Australian',
+    'German',
+    'French',
+    'Italian',
+    'Spanish',
+    'Portuguese',
+    'Dutch',
+    'Russian',
+    'Chinese',
+    'Japanese',
+    'Korean',
+    'Indian',
+    'Brazilian',
+    'Mexican',
+    'Argentine',
+    'Colombian',
+    'Chilean',
+    'Polish',
+    'Ukrainian',
+    'Romanian',
+    'Czech',
+    'Swedish',
+    'Norwegian',
+    'Danish',
+    'Finnish',
+    'Greek',
+    'Turkish',
+    'Arabic',
+    'Hebrew',
+    'Persian',
+    'Indonesian',
+    'Malaysian',
+    'Filipino',
+    'Thai',
+    'Vietnamese',
+    'Singaporean',
+    'South African',
+    'Nigerian',
+    'Egyptian',
+    'Kenyan',
+    'Moroccan',
+    'Algerian',
+    'Other',
+  ];
 
   @override
   void initState() {
@@ -61,7 +111,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _updateControllers() {
     final currentUser = _userProvider!.currentUser;
     if (currentUser != null) {
-      _nationalityController.text = currentUser.nationality ?? '';
+      _selectedNationality = currentUser.nationality;
       _bioController.text = currentUser.bio ?? '';
       _avatarUrlController.text = currentUser.avatarUrl ?? '';
     }
@@ -175,7 +225,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (currentUser == null) return;
 
     User updatedUser = currentUser.copyWith(
-      nationality: _nationalityController.text.isEmpty ? null : _nationalityController.text,
+      nationality: _selectedNationality,
       bio: _bioController.text.isEmpty ? null : _bioController.text,
       updatedAt: DateTime.now(),
     );
@@ -234,13 +284,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            if (_userEmail != null)
-              Text(
-                'Gravatar linked to $_userEmail',
-                style: Theme.of(context).textTheme.bodySmall,
-                textAlign: TextAlign.center,
-              ),
             const SizedBox(height: 24),
             TextField(
               controller: _searchController,
@@ -271,11 +314,37 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             const SizedBox(height: 16),
-            TextField(
-              controller: _nationalityController,
-              decoration: const InputDecoration(
-                labelText: 'Nationality (optional)',
-                border: OutlineInputBorder(),
+            DropdownSearch<String>(
+              // Ensure the current value is always a valid item, even if
+              // it was set before the fixed list existed (legacy data).
+              items: (String filter, LoadProps? loadProps) {
+                final allItems = <String>{
+                  ..._nationalities,
+                  if (_selectedNationality != null &&
+                      !_nationalities.contains(_selectedNationality))
+                    _selectedNationality!,
+                };
+                if (filter.isEmpty) return allItems.toList();
+                final search = filter.toLowerCase();
+                return allItems
+                    .where((n) => n.toLowerCase().contains(search))
+                    .toList();
+              },
+              selectedItem: _selectedNationality,
+              onSelected: (value) {
+                setState(() {
+                  _selectedNationality = value;
+                });
+              },
+              popupProps: const PopupProps.menu(
+                showSearchBox: true,
+              ),
+              decoratorProps: const DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  labelText: 'Nationality',
+                  hintText: 'Type to search...',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -304,7 +373,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void dispose() {
     _userProvider?.removeListener(_onUserChanged);
     _searchController.dispose();
-    _nationalityController.dispose();
     _bioController.dispose();
     super.dispose();
   }

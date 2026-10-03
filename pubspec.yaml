@@ -60,6 +60,7 @@ dependencies:
   firebase_storage: ^12.4.10
   # Image compression
   image_compression: ^1.0.2
+  dropdown_search: ^7.0.0
 
 dev_dependencies:
   flutter_test:
